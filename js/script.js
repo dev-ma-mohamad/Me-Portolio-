@@ -60,7 +60,7 @@ function startIntro() {
     intro.hidden = false;
     let width = 0;
     let height = 0;
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    const pixelRatio = 1;
 
     const resizeCanvas = () => {
         width = window.innerWidth;
@@ -73,12 +73,37 @@ function startIntro() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas, { passive: true });
 
-    const particleCount = Math.min(88, Math.max(42, Math.round(width / 13)));
+    const particleCount = Math.min(30, Math.max(12, Math.round(width / 48)));
     let introFinished = false;
+    let lastRenderTime = 0;
+    const flakeImage = document.createElement("canvas");
+    flakeImage.width = 32;
+    flakeImage.height = 32;
+    const flakeContext = flakeImage.getContext("2d");
+    flakeContext.strokeStyle = "#d3eeff";
+    flakeContext.lineWidth = 1.5;
+    flakeContext.lineCap = "round";
+    for (let arm = 0; arm < 6; arm += 1) {
+        const angle = arm * Math.PI / 3;
+        const endX = 16 + Math.cos(angle) * 11;
+        const endY = 16 + Math.sin(angle) * 11;
+        const branchX = 16 + Math.cos(angle) * 6.5;
+        const branchY = 16 + Math.sin(angle) * 6.5;
+        const branchLength = 3.5;
+        flakeContext.beginPath();
+        flakeContext.moveTo(16, 16);
+        flakeContext.lineTo(endX, endY);
+        flakeContext.moveTo(branchX, branchY);
+        flakeContext.lineTo(branchX - Math.cos(angle - .72) * branchLength, branchY - Math.sin(angle - .72) * branchLength);
+        flakeContext.moveTo(branchX, branchY);
+        flakeContext.lineTo(branchX - Math.cos(angle + .72) * branchLength, branchY - Math.sin(angle + .72) * branchLength);
+        flakeContext.stroke();
+    }
+
     const snowflakes = Array.from({ length: particleCount }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 1.8 + 2.2,
+        size: Math.random() * 5 + 9,
         speed: Math.random() * .8 + .45,
         drift: (Math.random() - .5) * .55,
         phase: Math.random() * Math.PI * 2,
@@ -87,6 +112,12 @@ function startIntro() {
     }));
 
     const renderSnow = (timestamp) => {
+        if (timestamp - lastRenderTime < 33) {
+            window.requestAnimationFrame(renderSnow);
+            return;
+        }
+        const frameScale = lastRenderTime ? Math.min((timestamp - lastRenderTime) / 16.67, 2) : 1;
+        lastRenderTime = timestamp;
         const time = timestamp * .001;
         context.clearRect(0, 0, width, height);
 
@@ -94,45 +125,19 @@ function startIntro() {
             const fallProgress = flake.y / height;
             const approach = introFinished ? 0 : Math.max(0, Math.min(1, (fallProgress - .08) / .64));
             const easeToCenter = approach * approach * (3 - 2 * approach);
-            const targetX = width * .5 + Math.sin(flake.phase + time * .8) * (18 + flake.radius * 16);
+            const targetX = width * .5 + Math.sin(flake.phase + time * .8) * (18 + flake.size * 1.6);
             const naturalDrift = Math.sin(time + flake.phase) * flake.twist;
 
-            flake.x += naturalDrift + flake.drift + (targetX - flake.x) * easeToCenter * .012;
-            flake.y += flake.speed * (1 + easeToCenter * .3);
+            flake.x += (naturalDrift + flake.drift + (targetX - flake.x) * easeToCenter * .012) * frameScale;
+            flake.y += flake.speed * (1 + easeToCenter * .3) * frameScale;
 
             const nearCenter = Math.max(0, 1 - Math.abs(flake.x - width * .5) / Math.max(width * .32, 1));
             const opacity = flake.opacity * (1 - approach * .45) * (.58 + nearCenter * .42);
-            const radius = flake.radius * (1 + easeToCenter * .2);
-            const rotation = time * .24 + flake.phase;
-            context.beginPath();
-            context.shadowColor = "rgba(91, 190, 255, .72)";
-            context.shadowBlur = radius * 1.8;
-            context.strokeStyle = `rgba(211, 238, 255, ${opacity})`;
-            context.lineWidth = Math.max(.8, radius * .24);
-            context.lineCap = "round";
-            context.save();
-            context.translate(flake.x, flake.y);
-            context.rotate(rotation);
-            for (let arm = 0; arm < 6; arm += 1) {
-                const angle = arm * Math.PI / 3;
-                const endX = Math.cos(angle) * radius * 2.2;
-                const endY = Math.sin(angle) * radius * 2.2;
-                const branchX = Math.cos(angle) * radius * 1.25;
-                const branchY = Math.sin(angle) * radius * 1.25;
-                const branchLength = radius * .65;
-                context.beginPath();
-                context.moveTo(0, 0);
-                context.lineTo(endX, endY);
-                context.moveTo(branchX, branchY);
-                context.lineTo(branchX - Math.cos(angle - .72) * branchLength, branchY - Math.sin(angle - .72) * branchLength);
-                context.moveTo(branchX, branchY);
-                context.lineTo(branchX - Math.cos(angle + .72) * branchLength, branchY - Math.sin(angle + .72) * branchLength);
-                context.stroke();
-            }
-            context.restore();
-            context.shadowBlur = 0;
+            context.globalAlpha = opacity;
+            context.drawImage(flakeImage, flake.x - flake.size / 2, flake.y - flake.size / 2, flake.size, flake.size);
+            context.globalAlpha = 1;
 
-            if (flake.y > height + 15 || flake.x < -16 || flake.x > width + 16) {
+            if (flake.y > height + 12 || flake.x < -12 || flake.x > width + 12) {
                 flake.x = Math.random() * width;
                 flake.y = -Math.random() * height * .32;
                 flake.phase = Math.random() * Math.PI * 2;

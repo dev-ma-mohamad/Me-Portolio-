@@ -271,99 +271,6 @@ body::before {
     z-index: -1;
 }
 
-.lab-chemistry {
-    position: fixed;
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-    inset: 0;
-}
-
-.lab-vessel,
-.lab-test-tube {
-    position: absolute;
-    overflow: visible;
-    color: rgba(99, 194, 255, .24);
-    filter: drop-shadow(0 0 14px rgba(0, 157, 255, .12));
-}
-
-.lab-vessel {
-    width: clamp(72px, 8vw, 112px);
-}
-
-.lab-vessel-left {
-    top: 38%;
-    left: max(14px, calc((100vw - var(--content)) / 2 - 105px));
-    animation: lab-hover 7s ease-in-out infinite;
-}
-
-.lab-vessel-right {
-    top: 53%;
-    right: max(14px, calc((100vw - var(--content)) / 2 - 105px));
-    width: clamp(66px, 7vw, 98px);
-    animation: lab-hover 8s ease-in-out -2.5s infinite;
-}
-
-.lab-test-tube {
-    width: clamp(28px, 3.2vw, 43px);
-}
-
-.lab-test-tube-left {
-    top: 30%;
-    left: max(82px, calc((100vw - var(--content)) / 2 - 47px));
-    transform: rotate(-12deg);
-}
-
-.lab-test-tube-right {
-    top: 64%;
-    right: max(79px, calc((100vw - var(--content)) / 2 - 44px));
-    transform: rotate(13deg);
-}
-
-.lab-glass,
-.lab-glass-detail {
-    fill: rgba(20, 72, 112, .055);
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2.2;
-}
-
-.lab-glass-detail {
-    fill: none;
-    stroke-width: 1.4;
-    opacity: .7;
-}
-
-.lab-liquid {
-    fill: rgba(0, 191, 255, .16);
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation: lab-liquid 3.8s ease-in-out infinite alternate;
-}
-
-.lab-liquid-right,
-.lab-liquid-tube-alt {
-    fill: rgba(129, 93, 255, .14);
-    animation-delay: -1.7s;
-}
-
-.lab-liquid-line {
-    fill: none;
-    stroke: rgba(105, 212, 255, .32);
-    stroke-linecap: round;
-    stroke-width: 1.6;
-}
-
-.lab-bubble {
-    fill: rgba(182, 232, 255, .62);
-    filter: drop-shadow(0 0 3px rgba(0, 191, 255, .75));
-    animation: lab-bubble 2.8s ease-in infinite;
-}
-
-.lab-bubble-two { animation-delay: -1s; }
-.lab-bubble-three { animation-delay: -2s; }
-
 .intro-warning {
     display: inline-flex;
     align-items: center;
@@ -529,36 +436,6 @@ body::before {
         right: 6%;
     }
 
-    .lab-vessel-left {
-        top: 40%;
-        left: 2px;
-        width: 58px;
-    }
-
-    .lab-vessel-right {
-        top: 55%;
-        right: 2px;
-        width: 54px;
-    }
-
-    .lab-test-tube {
-        width: 22px;
-    }
-
-    .lab-test-tube-left {
-        top: 32%;
-        left: 31px;
-    }
-
-    .lab-test-tube-right {
-        top: 65%;
-        right: 30px;
-    }
-
-    .lab-vessel,
-    .lab-test-tube {
-        opacity: .55;
-    }
 }
 
 a {
@@ -955,9 +832,8 @@ p {
     width: min(390px, 90%);
     aspect-ratio: 1;
     border-radius: 50%;
-    background: conic-gradient(from 25deg, rgba(22, 119, 255, .34), rgba(0, 191, 255, .17), rgba(129, 93, 255, .19), rgba(22, 119, 255, .32));
-    filter: blur(70px);
-    animation: glow-turn 14s linear infinite;
+    background: radial-gradient(circle, rgba(22, 119, 255, .22), rgba(0, 191, 255, .1) 40%, rgba(129, 93, 255, .08) 62%, transparent 76%);
+    filter: blur(42px);
 }
 
 .portrait-frame {
@@ -2242,17 +2118,6 @@ body.intro-complete .code-window {
     50% { transform: translateY(-8px) rotate(5deg); }
 }
 
-@keyframes lab-liquid {
-    from { transform: scaleY(.94) skewX(-2deg); }
-    to { transform: scaleY(1.04) skewX(2deg); }
-}
-
-@keyframes lab-bubble {
-    0% { opacity: 0; transform: translateY(9px) scale(.8); }
-    20% { opacity: .8; }
-    100% { opacity: 0; transform: translateY(-18px) scale(1.15); }
-}
-
 @keyframes hero-visual-enter {
     from { opacity: .35; transform: translateY(20px) rotate(4deg) scale(.96); filter: blur(3px); }
     to { opacity: 1; transform: translateY(0) rotate(1.5deg) scale(1); filter: blur(0); }
@@ -2266,10 +2131,6 @@ body.intro-complete .code-window {
 @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
-}
-
-@keyframes glow-turn {
-    to { transform: rotate(1turn); }
 }
 
 @media (min-width: 1500px) {
