@@ -78,7 +78,7 @@ function startIntro() {
     const snowflakes = Array.from({ length: particleCount }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 1.8 + .55,
+        radius: Math.random() * 1.8 + 2.2,
         speed: Math.random() * .8 + .45,
         drift: (Math.random() - .5) * .55,
         phase: Math.random() * Math.PI * 2,
@@ -103,27 +103,36 @@ function startIntro() {
             const nearCenter = Math.max(0, 1 - Math.abs(flake.x - width * .5) / Math.max(width * .32, 1));
             const opacity = flake.opacity * (1 - approach * .45) * (.58 + nearCenter * .42);
             const radius = flake.radius * (1 + easeToCenter * .2);
-
+            const rotation = time * .24 + flake.phase;
             context.beginPath();
-            context.fillStyle = `rgba(211, 238, 255, ${opacity})`;
             context.shadowColor = "rgba(91, 190, 255, .72)";
-            context.shadowBlur = radius * 3.2;
-            context.arc(flake.x, flake.y, radius, 0, Math.PI * 2);
-            context.fill();
-            context.shadowBlur = 0;
-
-            if (flake.radius > 1.65) {
+            context.shadowBlur = radius * 1.8;
+            context.strokeStyle = `rgba(211, 238, 255, ${opacity})`;
+            context.lineWidth = Math.max(.8, radius * .24);
+            context.lineCap = "round";
+            context.save();
+            context.translate(flake.x, flake.y);
+            context.rotate(rotation);
+            for (let arm = 0; arm < 6; arm += 1) {
+                const angle = arm * Math.PI / 3;
+                const endX = Math.cos(angle) * radius * 2.2;
+                const endY = Math.sin(angle) * radius * 2.2;
+                const branchX = Math.cos(angle) * radius * 1.25;
+                const branchY = Math.sin(angle) * radius * 1.25;
+                const branchLength = radius * .65;
                 context.beginPath();
-                context.strokeStyle = `rgba(113, 208, 255, ${opacity * .43})`;
-                context.lineWidth = .65;
-                context.moveTo(flake.x - radius * 2.2, flake.y);
-                context.lineTo(flake.x + radius * 2.2, flake.y);
-                context.moveTo(flake.x, flake.y - radius * 2.2);
-                context.lineTo(flake.x, flake.y + radius * 2.2);
+                context.moveTo(0, 0);
+                context.lineTo(endX, endY);
+                context.moveTo(branchX, branchY);
+                context.lineTo(branchX - Math.cos(angle - .72) * branchLength, branchY - Math.sin(angle - .72) * branchLength);
+                context.moveTo(branchX, branchY);
+                context.lineTo(branchX - Math.cos(angle + .72) * branchLength, branchY - Math.sin(angle + .72) * branchLength);
                 context.stroke();
             }
+            context.restore();
+            context.shadowBlur = 0;
 
-            if (flake.y > height + 5 || flake.x < -12 || flake.x > width + 12) {
+            if (flake.y > height + 15 || flake.x < -16 || flake.x > width + 16) {
                 flake.x = Math.random() * width;
                 flake.y = -Math.random() * height * .32;
                 flake.phase = Math.random() * Math.PI * 2;
@@ -143,7 +152,7 @@ function startIntro() {
         window.setTimeout(() => {
             intro.remove();
             document.body.classList.add("intro-complete");
-        }, 700);
+        }, 1100);
     };
 
     window.requestAnimationFrame(renderSnow);
