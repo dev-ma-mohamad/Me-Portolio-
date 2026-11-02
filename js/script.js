@@ -2,6 +2,37 @@ document.documentElement.classList.add("js");
 
 // Add Mohamed's LinkedIn URL here when he provides it.
 const linkedinProfileUrl = "";
+const themeToggle = document.querySelector(".theme-toggle");
+const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+function applyTheme(theme) {
+    const isLight = theme === "light";
+    document.body.dataset.theme = isLight ? "light" : "dark";
+    themeToggle.setAttribute("aria-label", `Switch to ${isLight ? "dark" : "light"} mode`);
+    themeToggle.title = `Switch to ${isLight ? "dark" : "light"} mode`;
+    themeToggle.querySelector(".theme-label").textContent = `${isLight ? "Dark" : "Light"} mode`;
+    themeColorMeta.content = isLight ? "#f3f7ff" : "#080b14";
+}
+
+try {
+    const savedTheme = localStorage.getItem("portfolio-theme");
+    if (savedTheme === "light" || savedTheme === "dark") applyTheme(savedTheme);
+} catch (error) {
+    console.warn("The saved theme preference could not be restored.", error);
+}
+
+themeToggle.addEventListener("click", () => {
+    const nextTheme = document.body.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+
+    try {
+        localStorage.setItem("portfolio-theme", nextTheme);
+    } catch (error) {
+        console.warn("The theme preference could not be saved.", error);
+    }
+
+    if (window.matchMedia("(max-width: 760px)").matches) closeMenu();
+});
 
 const header = document.querySelector(".site-header");
 const menuToggle = document.querySelector(".menu-toggle");
@@ -9,6 +40,117 @@ const navigation = document.querySelector("#primary-navigation");
 const navigationLinks = [...document.querySelectorAll(".nav-link")];
 const sections = [...document.querySelectorAll("main section[id]")];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function startIntro() {
+    const intro = document.querySelector("#page-intro");
+    const canvas = intro.querySelector(".snow-canvas");
+
+    if (reducedMotion.matches) {
+        intro.remove();
+        return;
+    }
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+        intro.remove();
+        document.body.classList.add("intro-complete");
+        return;
+    }
+
+    intro.hidden = false;
+    let width = 0;
+    let height = 0;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+
+    const resizeCanvas = () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas, { passive: true });
+
+    const particleCount = Math.min(88, Math.max(42, Math.round(width / 13)));
+    let introFinished = false;
+    const snowflakes = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 1.8 + .55,
+        speed: Math.random() * .8 + .45,
+        drift: (Math.random() - .5) * .55,
+        phase: Math.random() * Math.PI * 2,
+        opacity: Math.random() * .42 + .28,
+        twist: Math.random() * .6 + .2
+    }));
+
+    const renderSnow = (timestamp) => {
+        const time = timestamp * .001;
+        context.clearRect(0, 0, width, height);
+
+        snowflakes.forEach((flake) => {
+            const fallProgress = flake.y / height;
+            const approach = introFinished ? 0 : Math.max(0, Math.min(1, (fallProgress - .08) / .64));
+            const easeToCenter = approach * approach * (3 - 2 * approach);
+            const targetX = width * .5 + Math.sin(flake.phase + time * .8) * (18 + flake.radius * 16);
+            const naturalDrift = Math.sin(time + flake.phase) * flake.twist;
+
+            flake.x += naturalDrift + flake.drift + (targetX - flake.x) * easeToCenter * .012;
+            flake.y += flake.speed * (1 + easeToCenter * .3);
+
+            const nearCenter = Math.max(0, 1 - Math.abs(flake.x - width * .5) / Math.max(width * .32, 1));
+            const opacity = flake.opacity * (1 - approach * .45) * (.58 + nearCenter * .42);
+            const radius = flake.radius * (1 + easeToCenter * .2);
+
+            context.beginPath();
+            context.fillStyle = `rgba(211, 238, 255, ${opacity})`;
+            context.shadowColor = "rgba(91, 190, 255, .72)";
+            context.shadowBlur = radius * 3.2;
+            context.arc(flake.x, flake.y, radius, 0, Math.PI * 2);
+            context.fill();
+            context.shadowBlur = 0;
+
+            if (flake.radius > 1.65) {
+                context.beginPath();
+                context.strokeStyle = `rgba(113, 208, 255, ${opacity * .43})`;
+                context.lineWidth = .65;
+                context.moveTo(flake.x - radius * 2.2, flake.y);
+                context.lineTo(flake.x + radius * 2.2, flake.y);
+                context.moveTo(flake.x, flake.y - radius * 2.2);
+                context.lineTo(flake.x, flake.y + radius * 2.2);
+                context.stroke();
+            }
+
+            if (flake.y > height + 5 || flake.x < -12 || flake.x > width + 12) {
+                flake.x = Math.random() * width;
+                flake.y = -Math.random() * height * .32;
+                flake.phase = Math.random() * Math.PI * 2;
+            }
+        });
+
+        window.requestAnimationFrame(renderSnow);
+    };
+
+    const finishIntro = () => {
+        if (introFinished) return;
+        introFinished = true;
+        canvas.classList.add("background-snow");
+        document.body.appendChild(canvas);
+        intro.classList.add("is-leaving");
+
+        window.setTimeout(() => {
+            intro.remove();
+            document.body.classList.add("intro-complete");
+        }, 700);
+    };
+
+    window.requestAnimationFrame(renderSnow);
+    window.setTimeout(finishIntro, 2450);
+}
+
+startIntro();
 
 function closeMenu() {
     menuToggle.setAttribute("aria-expanded", "false");
